@@ -1,4 +1,13 @@
+## How desgin
+因为在使用mongoDB API操作cosmosdb的时候，遇到RU限制，操作会直接失败，并抛出异常16500，Request rate is large的错误，该分支设法修改原有mongodb的DefaultServerProtocolExecutor的默认逻辑，再抛出该异常时，可以进行最多指定次数的重试，每次重试的时间依次递增，如10ms，20ms，40ms，80ms，160ms，320ms，640ms
+最大重试次数又vm参数maxtry控制，默认为5，可以通过-Dmaxtry=N 来设定
+
+
+## How to compile
+TODO
+
 ## Release Notes
+
 
 Release notes are available [here](https://github.com/mongodb/mongo-java-driver/releases).
 
