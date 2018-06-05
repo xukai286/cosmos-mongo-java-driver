@@ -179,7 +179,6 @@ class DefaultServer implements ClusterableServer {
             for (int i = 0; i < maxtimes; i++) {
                 long time = (long) (10L* Math.pow(2,i));
                 try {
-		    //LOGGER.info("-----------");
                     protocol.setCommandListener(commandListener);
                     return protocol.execute(connection);
                 } catch (MongoException e) {
@@ -198,7 +197,7 @@ class DefaultServer implements ClusterableServer {
                     }
                 }
             }
-            LOGGER.error("faild after retry "+maxtimes+" times", er);
+            LOGGER.error("faild after retried "+maxtimes+" times. no more retries. throw exception", er);
             throw er;
         }
 
