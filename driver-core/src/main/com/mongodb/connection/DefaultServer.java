@@ -161,15 +161,45 @@ class DefaultServer implements ClusterableServer {
     }
 
     private class DefaultServerProtocolExecutor implements ProtocolExecutor {
+
+        int maxtimes = 5;
+        {
+            try {
+                 maxtimes = Integer.parseInt(System.getProperty("maxtry"));
+		LOGGER.info("try "+maxtimes+" times if reach RU limitation.");
+            } catch (Throwable t) {
+		LOGGER.info("no maxtry found in system properties.using the default max retry times 5.");
+
+            }
+
+        }
         @Override
         public <T> T execute(final Protocol<T> protocol, final InternalConnection connection) {
-            try {
-                protocol.setCommandListener(commandListener);
-                return protocol.execute(connection);
-            } catch (MongoException e) {
-                handleThrowable(e);
-                throw e;
+            MongoException er = null;
+            for (int i = 0; i < maxtimes; i++) {
+                long time = (long) (10L* Math.pow(2,i));
+                try {
+		    //LOGGER.info("-----------");
+                    protocol.setCommandListener(commandListener);
+                    return protocol.execute(connection);
+                } catch (MongoException e) {
+                    if (e.getCode() == 16500) {
+                        try {
+                            Thread.sleep(time);
+                            LOGGER.info("retry after " +time+ "ms. round "+i);
+
+                        } catch (Throwable t) {
+                            LOGGER.error(t.getMessage());
+                        }
+                        er = e;
+                    } else {
+                        handleThrowable(e);
+                        throw e;
+                    }
+                }
             }
+            LOGGER.error("faild after retry "+maxtimes+" times", er);
+            throw er;
         }
 
         @Override
